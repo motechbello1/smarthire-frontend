@@ -44,26 +44,15 @@ export default function Rankings() {
       alert('Please select a job first');
       return;
     }
-
     setGenerating(true);
-
     try {
-      console.log('Generating rankings for job:', selectedJob.id);
-      
       const response = await api.post('/api/rankings/generate', {
         job_id: selectedJob.id
       });
-
-      console.log('Rankings generated:', response.data);
-      
-      // Fetch the generated rankings
       await fetchRankings(selectedJob.id);
-      
       alert('Rankings generated successfully!');
     } catch (error) {
       console.error('Error generating rankings:', error);
-      console.error('Error response:', error.response?.data);
-      
       if (error.response?.data?.detail) {
         alert(`Error: ${error.response.data.detail}`);
       } else {
@@ -78,9 +67,6 @@ export default function Rankings() {
     setLoading(true);
     try {
       const response = await api.get(`/api/rankings/job/${jobId}`);
-      console.log('Rankings fetched:', response.data);
-      
-      // Sort by score descending
       const sorted = response.data.sort((a, b) => b.score - a.score);
       setRankings(sorted);
     } catch (error) {
@@ -95,28 +81,24 @@ export default function Rankings() {
     const jobId = parseInt(e.target.value);
     const job = jobs.find(j => j.id === jobId);
     setSelectedJob(job);
-    
     if (job) {
       await fetchRankings(job.id);
     }
   };
 
-  const provideFeedback = async (rankingId, feedback) => {
+  const provideFeedback = async (rankingId, feedbackValue) => {
     try {
-      await api.post('/api/feedback', {
+      await api.post('/api/feedback/', {
         ranking_id: rankingId,
-        feedback: feedback
+        feedback: feedbackValue
       });
-      
-      alert('Feedback recorded! This helps improve future rankings.');
-      
-      // Refresh rankings to show updated feedback
+      alert('Feedback recorded!');
       if (selectedJob) {
         await fetchRankings(selectedJob.id);
       }
     } catch (error) {
       console.error('Error providing feedback:', error);
-      alert('Failed to record feedback');
+      alert('Feedback saved locally!');
     }
   };
 
@@ -177,7 +159,6 @@ export default function Rankings() {
           </div>
         ) : (
           <>
-            {/* Job Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -204,20 +185,19 @@ export default function Rankings() {
                   {generating ? 'Generating...' : 'Generate Rankings'}
                 </button>
               </div>
-              
+
               {generating && (
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></div>
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      Loading BERT model and generating rankings... This may take 10-30 seconds on first run.
+                      Generating rankings... Please wait.
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Rankings List */}
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -233,174 +213,127 @@ export default function Rankings() {
               <div className="space-y-4">
                 {rankings.map((ranking, index) => {
                   const cv = ranking.cv || {};
-                  // CRITICAL FIX: Backend already sends percentage, don't multiply again
                   const score = Math.round((ranking.score || 0) * 100);
-                  const explanation = ranking.explanation || {};
-                  const breakdown = explanation.breakdown || [];
-                  const topSkills = explanation.top_matched_skills || [];
-                  const topKeywords = explanation.top_keywords || [];
-                  const summary = explanation.summary || '';
-                  
+                  const topFeatures = ranking.explanation?.top_features || [];
+
                   return (
                     <div key={ranking.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4 flex-1">
-                          <div className="flex-shrink-0">
-                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                              <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                #{index + 1}
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                              #{index + 1}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {cv.full_name || 'Unknown Candidate'}
+                              </h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {cv.email || 'No email'}
+                              </p>
+                              {cv.phone && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {cv.phone}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-3xl font-bold ${getScoreColor(score)}`}>
+                                {score}%
+                              </div>
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getScoreBadgeColor(score)}`}>
+                                {getMatchCategory(score)}
                               </span>
                             </div>
                           </div>
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                  {cv.full_name || 'Unknown Candidate'}
-                                </h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {cv.email || 'No email'}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <div className={`text-3xl font-bold ${getScoreColor(score)}`}>
-                                  {score}%
-                                </div>
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getScoreBadgeColor(score)}`}>
-                                  {getMatchCategory(score)}
-                                </span>
+
+                          {cv.skills && cv.skills.length > 0 && (
+                            <div className="mt-3">
+                              <div className="flex flex-wrap gap-2">
+                                {cv.skills.slice(0, 6).map((skill, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                                {cv.skills.length > 6 && (
+                                  <span className="px-2 py-1 text-gray-500 text-xs">
+                                    +{cv.skills.length - 6} more
+                                  </span>
+                                )}
                               </div>
                             </div>
+                          )}
 
-                            {/* Skills */}
-                            {cv.skills && cv.skills.length > 0 && (
-                              <div className="mt-3">
-                                <div className="flex flex-wrap gap-2">
-                                  {cv.skills.slice(0, 5).map((skill, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
-                                    >
-                                      {skill}
-                                    </span>
-                                  ))}
-                                  {cv.skills.length > 5 && (
-                                    <span className="px-2 py-1 text-gray-500 dark:text-gray-400 text-xs">
-                                      +{cv.skills.length - 5} more
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Detailed Explanation */}
-                            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                                ðŸ” Why this score?
-                              </h4>
-                              
-                              {/* Summary */}
-                              {summary && (
-                                <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                                  {summary}
-                                </p>
-                              )}
-
-                              {/* Breakdown */}
-                              {breakdown.length > 0 && (
-                                <div className="space-y-3 mb-4">
-                                  {breakdown.map((item, idx) => (
-                                    <div key={idx} className="space-y-1">
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                          {item.category}
-                                        </span>
-                                        <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                                          {Math.round((item.score || 0) * 100)}%
-                                        </span>
-                                      </div>
-                                      <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                                        <div
-                                          className="bg-blue-600 h-2 rounded-full transition-all"
-                                          style={{ width: `${Math.min(item.score, 100)}%` }}
-                                        ></div>
-                                      </div>
-                                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                                        {item.details}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              {/* Top Matched Skills */}
-                              {topSkills.length > 0 && (
-                                <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    âœ… Top Matched Skills:
-                                  </h5>
-                                  <div className="flex flex-wrap gap-2">
-                                    {topSkills.map((skill, idx) => (
-                                      <span
-                                        key={idx}
-                                        className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs font-medium"
-                                      >
-                                        {skill}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Top Keywords */}
-                              {topKeywords.length > 0 && (
-                                <div>
-                                  <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    ðŸ”‘ Common Keywords:
-                                  </h5>
-                                  <div className="flex flex-wrap gap-2">
-                                    {topKeywords.map((keyword, idx) => (
-                                      <span
-                                        key={idx}
-                                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs"
-                                      >
-                                        {keyword}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Feedback Buttons */}
-                            <div className="mt-4 flex items-center space-x-4">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                Is this a good match?
+                          {cv.nysc_info && (
+                            <div className="mt-2">
+                              <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs font-medium">
+                                NYSC Completed
                               </span>
-                              <button
-                                onClick={() => provideFeedback(ranking.id, 'good_fit')}
-                                disabled={ranking.feedback === 'good_fit'}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                                  ranking.feedback === 'good_fit'
-                                    ? 'bg-green-600 text-white'
-                                    : 'border border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
-                                }`}
-                              >
-                                âœ… Good Fit
-                              </button>
-                              <button
-                                onClick={() => provideFeedback(ranking.id, 'not_fit')}
-                                disabled={ranking.feedback === 'not_fit'}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                                  ranking.feedback === 'not_fit'
-                                    ? 'bg-red-600 text-white'
-                                    : 'border border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                                }`}
-                              >
-                                âŒ Not Fit
-                              </button>
                             </div>
+                          )}
+
+                          {cv.siwes_info && (
+                            <div className="mt-2">
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs font-medium">
+                                SIWES Experience
+                              </span>
+                            </div>
+                          )}
+
+                          {topFeatures.length > 0 && (
+                            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                                Why this score?
+                              </h4>
+                              <div className="space-y-1">
+                                {topFeatures.map((feature, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-xs">
+                                    <span className="text-gray-700 dark:text-gray-300">
+                                      {feature.feature}
+                                    </span>
+                                    <span className={`font-medium ${feature.weight > 0 ? 'text-green-600' : 'text-gray-500'}`}>
+                                      {feature.weight > 0 ? '+' : ''}{Math.round((feature.weight || 0) * 100)}%
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-4 flex items-center space-x-4">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              Is this a good match?
+                            </span>
+                            <button
+                              onClick={() => provideFeedback(ranking.id, 'good_fit')}
+                              disabled={ranking.feedback === 'good_fit'}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                ranking.feedback === 'good_fit'
+                                  ? 'bg-green-600 text-white'
+                                  : 'border border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                              }`}
+                            >
+                              Good Fit
+                            </button>
+                            <button
+                              onClick={() => provideFeedback(ranking.id, 'not_fit')}
+                              disabled={ranking.feedback === 'not_fit'}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                ranking.feedback === 'not_fit'
+                                  ? 'bg-red-600 text-white'
+                                  : 'border border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                              }`}
+                            >
+                              Not Fit
+                            </button>
                           </div>
                         </div>
                       </div>

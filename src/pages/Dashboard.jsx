@@ -30,28 +30,16 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      // Fetch CVs count
       const cvsResponse = await api.get('/api/cvs');
       const totalCVs = cvsResponse.data.length;
 
-      // Fetch Jobs count
       const jobsResponse = await api.get('/api/jobs');
       const totalJobs = jobsResponse.data.length;
-
-      // Fetch Rankings count (if endpoint exists)
-      let pendingRankings = 0;
-      try {
-        const rankingsResponse = await api.get('/api/rankings');
-        pendingRankings = rankingsResponse.data.length;
-      } catch (err) {
-        // Rankings endpoint might not exist yet
-        console.log('Rankings endpoint not available');
-      }
 
       setStats({
         totalCVs,
         totalJobs,
-        pendingRankings
+        pendingRankings: 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -77,7 +65,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
@@ -100,7 +87,6 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -111,12 +97,8 @@ export default function Dashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Total CVs
-                  </dt>
-                  <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                    {stats.totalCVs}
-                  </dd>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total CVs</dt>
+                  <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.totalCVs}</dd>
                 </dl>
               </div>
             </div>
@@ -131,12 +113,8 @@ export default function Dashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Total Jobs
-                  </dt>
-                  <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                    {stats.totalJobs}
-                  </dd>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Jobs</dt>
+                  <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.totalJobs}</dd>
                 </dl>
               </div>
             </div>
@@ -151,23 +129,16 @@ export default function Dashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Pending Rankings
-                  </dt>
-                  <dd className="text-3xl font-semibold text-gray-900 dark:text-white">
-                    {stats.pendingRankings}
-                  </dd>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">System Status</dt>
+                  <dd className="text-xl font-semibold text-green-600 dark:text-green-400">● Online</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button
               onClick={() => navigate('/cvs')}
@@ -204,7 +175,7 @@ export default function Dashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">View Rankings</h3>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{stats.pendingRankings} pending</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">BERT powered</p>
               </div>
             </button>
 
@@ -223,28 +194,23 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Activity Section */}
-        {(stats.totalCVs > 0 || stats.totalJobs > 0) && (
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              System Status
-            </h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-600 dark:text-gray-400">CVs Uploaded</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.totalCVs}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Jobs Posted</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.totalJobs}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">System Status</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">● Online</span>
-              </div>
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Status</h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+              <span className="text-sm text-gray-600 dark:text-gray-400">CVs Uploaded</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.totalCVs}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Jobs Posted</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.totalJobs}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">System Status</span>
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">● Online</span>
             </div>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

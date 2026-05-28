@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import axios from 'axios';
@@ -234,7 +234,7 @@ export default function Rankings() {
                 {rankings.map((ranking, index) => {
                   const cv = ranking.cv || {};
                   // CRITICAL FIX: Backend already sends percentage, don't multiply again
-                  const score = Math.round(ranking.score || 0);
+                  const score = Math.round((ranking.score || 0) * 100);
                   const explanation = ranking.explanation || {};
                   const breakdown = explanation.breakdown || [];
                   const topSkills = explanation.top_matched_skills || [];
@@ -297,7 +297,7 @@ export default function Rankings() {
                             {/* Detailed Explanation */}
                             <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                                🔍 Why this score?
+                                ðŸ” Why this score?
                               </h4>
                               
                               {/* Summary */}
@@ -317,7 +317,7 @@ export default function Rankings() {
                                           {item.category}
                                         </span>
                                         <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                                          {Math.round(item.score)}%
+                                          {Math.round((item.score || 0) * 100)}%
                                         </span>
                                       </div>
                                       <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
@@ -338,7 +338,7 @@ export default function Rankings() {
                               {topSkills.length > 0 && (
                                 <div className="mb-3">
                                   <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    ✅ Top Matched Skills:
+                                    âœ… Top Matched Skills:
                                   </h5>
                                   <div className="flex flex-wrap gap-2">
                                     {topSkills.map((skill, idx) => (
@@ -357,7 +357,7 @@ export default function Rankings() {
                               {topKeywords.length > 0 && (
                                 <div>
                                   <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    🔑 Common Keywords:
+                                    ðŸ”‘ Common Keywords:
                                   </h5>
                                   <div className="flex flex-wrap gap-2">
                                     {topKeywords.map((keyword, idx) => (
@@ -387,7 +387,7 @@ export default function Rankings() {
                                     : 'border border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                                 }`}
                               >
-                                ✅ Good Fit
+                                âœ… Good Fit
                               </button>
                               <button
                                 onClick={() => provideFeedback(ranking.id, 'not_fit')}
@@ -398,7 +398,7 @@ export default function Rankings() {
                                     : 'border border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
                                 }`}
                               >
-                                ❌ Not Fit
+                                âŒ Not Fit
                               </button>
                             </div>
                           </div>

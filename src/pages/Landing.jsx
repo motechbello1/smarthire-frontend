@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -170,7 +170,6 @@ export default function Landing() {
           <div className="text-center text-gray-600 dark:text-gray-400">
             <p>&copy; 2026 SmartHire AI. Built for Nigerian Recruitment.</p>
             <p className="mt-2 text-sm">
-              BSc Thesis Project - National Centre for Artificial Intelligence and Robotics (NCAIR)
             </p>
           </div>
         </div>

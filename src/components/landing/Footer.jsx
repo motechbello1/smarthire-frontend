@@ -94,7 +94,6 @@ export function Footer() {
             © 2026 SmartHire AI. Built by Bello for Nigerian Recruitment.
           </p>
           <p className="text-sm mt-2">
-            National Centre for Artificial Intelligence and Robotics (NCAIR), Nigeria
           </p>
         </div>
       </div>

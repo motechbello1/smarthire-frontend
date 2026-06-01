@@ -35,7 +35,7 @@ export default function Register() {
         organization: formData.organization,
         password: formData.password
       });
-      navigate('/verify-email', { state: { email: formData.email } });
+      navigate('/login');
     } catch (err) {
       console.error('Registration error:', err);
     }

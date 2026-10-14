@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import CVs from './pages/CVs';
 import Jobs from './pages/Jobs';
 import Rankings from './pages/Rankings';
+import RouteSeo from './components/RouteSeo';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -40,6 +41,7 @@ function App() {
 
   return (
     <Router>
+      <RouteSeo />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
